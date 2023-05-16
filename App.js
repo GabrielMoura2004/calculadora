@@ -2,68 +2,81 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 
 export default function App() {
-  const buttons = ['LIMPAR', 'DEL', '%', '/', 7, 8, 9, "x", 6, 5, 4, '-', 3, 2, 1, '+', 0, '.', '+/-', '='];
+  const buttons = [
+    'LIMPAR',
+    'DEL',
+    '%',
+    '/',
+    7,
+    8,
+    9,
+    'x',
+    6,
+    5,
+    4,
+    '-',
+    3,
+    2,
+    1,
+    '+',
+    '+/-',
+    0,
+    '.',
+    '=',
+  ];
 
   const [currentNumber, setCurrentNumber] = useState('');
   const [lastNumber, setLastNumber] = useState('');
+  const [operation, setOperation] = useState('');
 
-  function calculator() {
-    const splitNumbers = currentNumber.split(' ');
-    const firstNumber = parseFloat(splitNumbers[0]);
-    const secondNumber = parseFloat(splitNumbers[2]);
-    const operator = splitNumbers[1];
-
-    if (isNaN(firstNumber) || isNaN(secondNumber)) {
-      return;
-    }
-
-    let result = 0;
-    switch (operator) {
-      case '+':
-        result = firstNumber + secondNumber;
-        break;
-      case '-':
-        result = firstNumber - secondNumber;
-        break;
-      case 'x':
-        result = firstNumber * secondNumber;
-        break;
-      case '/':
-        result = firstNumber / secondNumber;
-        break;
-      default:
-        return;
-    }
-
-    setCurrentNumber(result.toString());
-  }
-
-  function handleInput(buttonPressed) {
+  const handleInput = (buttonPressed) => {
     if (buttonPressed === '+' || buttonPressed === '-' || buttonPressed === 'x' || buttonPressed === '/') {
-      setCurrentNumber(currentNumber + ' ' + buttonPressed + ' ');
+      setOperation(buttonPressed);
+      setLastNumber(currentNumber + ' ' + buttonPressed);
+      setCurrentNumber('');
       return;
     }
 
     switch (buttonPressed) {
       case 'DEL':
-        setCurrentNumber(currentNumber.substring(0, currentNumber.length - 2));
+        setCurrentNumber(currentNumber.slice(0, -1));
         return;
       case 'LIMPAR':
         setLastNumber('');
         setCurrentNumber('');
         return;
-      case '=':
-        setLastNumber(currentNumber + ' = ');
-        calculator();
-        return;
       case '+/-':
-        setCurrentNumber((parseFloat(currentNumber) * -1).toString());
+        setCurrentNumber(parseFloat(currentNumber) * -1);
         return;
-      default:
-        setCurrentNumber(currentNumber + buttonPressed);
+      case '%':
+        setCurrentNumber(parseFloat(currentNumber) / 100);
+        return;
+      case '=':
+        const current = parseFloat(currentNumber);
+        const last = parseFloat(lastNumber);
+        switch (operation) {
+          case '+':
+            setCurrentNumber((last + current).toString());
+            break;
+          case '-':
+            setCurrentNumber((last - current).toString());
+            break;
+          case 'x':
+            setCurrentNumber((last * current).toString());
+            break;
+          case '/':
+            setCurrentNumber((last / current).toString());
+            break;
+          default:
+            return;
+        }
+        setOperation('');
+        setLastNumber('');
         return;
     }
-  }
+
+    setCurrentNumber(currentNumber + buttonPressed);
+  };
 
   return (
     <View style={styles.container}>
@@ -71,18 +84,23 @@ export default function App() {
         <Text style={styles.historyText}>{lastNumber}</Text>
         <Text style={styles.resultText}>{currentNumber}</Text>
       </View>
-
       <View style={styles.buttons}>
         {buttons.map((button) => (
           <TouchableOpacity
-            key={button}
-            style={[styles.button, { backgroundColor: button === '=' ? '#3dd0e3' : 'white' }]}
             onPress={() => handleInput(button)}
+            key={button}
+            style={[
+              styles.button,
+              {
+                backgroundColor:
+                  button === '=' ? '#3dd0e3' : typeof button === 'number' ? 'white' : '#0093a6',
+              },
+            ]}
           >
             <Text
               style={[
                 styles.textButton,
-                { color: typeof button === 'number' ? 'black' : button === '=' ? 'white' : '#0093a6' },
+                { color: button === '=' ? 'white' : typeof button === 'number' ? 'black' : '#7c7c7c' },
               ]}
             >
               {button}
@@ -111,7 +129,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   historyText: {
-    color: '#7c7c7c',
+    color:'red' ,
     fontSize: 20,
     marginRight: 10,
     alignSelf: 'flex-end',
